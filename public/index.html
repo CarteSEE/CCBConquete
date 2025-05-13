@@ -1,20 +1,29 @@
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/style.css" />
-  <!--  Leaflet  -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin=""
-  />
-  <title>CCB Conquête</title>
-</head>
-<body>
-  <div id="map"></div>
-  <div id="hud" class="hud"></div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdn.skypack.dev/@turf/turf@6.5.0"></script>
-  <script src="/main.js" type="module"></script>
-</body>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CCB Conquête</title>
+
+    <link rel="stylesheet" href="/style.css" />
+
+    <!-- Leaflet -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="hud" class="hud"></div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.skypack.dev/@turf/turf@6.5.0"></script>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

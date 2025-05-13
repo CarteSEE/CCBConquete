@@ -1,28 +1,28 @@
 {
   "name": "ccbconquete",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node build/server.js",
-    "graph": "tsx src/scripts/precomputeGraph.ts"
-  },
+  "dev":   "tsx watch src/server.ts",
+  "build": "tsc",
+  "start": "node build/server.js",
+  "graph": "tsx src/scripts/precomputeGraph.ts"   
+},
   "dependencies": {
+    "express": "^4.19.0",
+    "socket.io": "^4.7.2",
+    "tmi.js": "^1.8.5",
     "@turf/bbox": "^6.5.0",
     "@turf/bbox-polygon": "^6.5.0",
     "@turf/boolean-overlap": "^6.5.0",
     "@turf/boolean-touches": "^6.5.0",
-    "express": "^4.19.0",
-    "socket.io": "^4.7.2",
-    "tmi.js": "^1.8.5"
+    "topojson-client": "^3.1.0"
   },
   "devDependencies": {
-    "@types/express": "^4.17.18",
-    "mapshaper": "^0.6.102",
-    "topojson-client": "^3.1.0",
-    "ts-node-dev": "^2.0.0",
-    "tsx": "^4.19.4",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "tsx": "^4.7.0",
+    "mapshaper": "^0.6.58",
+    "@types/express": "^4.17.18"
   }
+  
 }
