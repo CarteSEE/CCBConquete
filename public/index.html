@@ -1,21 +1,16 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <title>Twitch‑War</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <style>#map{height:100vh}#hud{position:absolute;top:10px;left:10px;z-index:1000;color:#4caf50;font-weight:bold}</style>
-</head>
-<body>
-  <div id="map"></div>
-
-  <!-- Overlay HUD -->
-<div id="hud"><span id="tick">Tour 0</span></div>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="main.js" type="module"></script>
-</body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/style.css" />
+    <title>CCB Conquête</title>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="hud" class="hud"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.skypack.dev/@turf/turf@6.5.0"></script>
+    <script src="/main.js" type="module"></script>
+  </body>
 </html>

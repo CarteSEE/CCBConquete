@@ -1,19 +1,19 @@
-body{margin:0;font-family:'Segoe UI',sans-serif;background:#1b1d22;color:#eee}
-#map{height:100vh}
+/* carte plein écran */
+html,body,#map{height:100%;margin:0;padding:0;}
 
 /* HUD */
-#hud{position:absolute;top:10px;left:10px;z-index:1000;
-     background:rgba(20,22,28,.8);padding:6px 10px;border-radius:6px;
-     color:#4caf50;font-weight:bold;box-shadow:0 0 4px #000;}
-#tick{font-weight:600}
+.hud{
+  position:absolute;top:10px;right:10px;z-index:1000;
+  background:rgba(30,30,30,.75);color:#fff;
+  padding:10px 14px;border-radius:8px;
+  font-family:system-ui,sans-serif;font-size:14px;
+  min-width:160px;
+}
+.camp-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.camp-color{width:12px;height:12px;border-radius:2px;}
 
-/* popup verre dépoli */
-.leaflet-popup.region-popup .leaflet-popup-content-wrapper{
-  background:rgba(40,42,48,.55);backdrop-filter:blur(4px);
-  border-radius:14px;color:#eee;}
-.card h3{margin:0 0 6px;font-size:16px;color:#fff;}
-.card p {margin:0;font-size:13px;line-height:1.4;}
-
-/* clean */
-.leaflet-container a.leaflet-control-attribution{display:none}
-.leaflet-container svg path:focus{outline:none}
+/* Popup territoire */
+.leaflet-popup-content-wrapper.territory-popup{
+  background:rgba(40,40,40,.5);color:#fff;border-radius:6px;padding:6px 10px;
+}
+.leaflet-theme-dark .leaflet-popup-tip{background:rgba(40,40,40,.5);}

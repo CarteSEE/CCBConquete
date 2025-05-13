@@ -59,7 +59,7 @@ function buildInitialState(io: IOServer): GameState {
   const features: any[] = nuts2.features;
 
   /* ---- graphe d’adjacence ---- */
-  const graph: Record<string, string[]> = {};
+  const graph = JSON.parse(readFileSync(path.join(__dirname, "..", "..", "public", "nuts2-adj.json"), "utf-8"));
   for (const a of features) {
     const neigh: string[] = [];
     for (const b of features) {
