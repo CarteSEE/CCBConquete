@@ -43,8 +43,11 @@ regions.forEach(a => {
 const game = { tick: 0, viewers: {}, camps: {}, ownership: {} };
 
 /* renvoie la première région dont l’ID commence par le préfixe */
-const firstRegionId = prefix =>
-  regions.find(f => f.properties.NUTS_ID.startsWith(prefix))?.properties.NUTS_ID;
+const firstRegionId = prefix => {
+  const feat = regions.find(f => f.properties?.NUTS_ID?.startsWith(prefix));
+  return feat ? feat.properties.NUTS_ID : null;
+};
+
 
 /* ───── Mode démo (NODE_ENV=dev) ───── */
 if (process.env.NODE_ENV === 'dev') {
