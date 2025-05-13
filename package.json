@@ -6,7 +6,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node build/server.js",
-    "graph": "ts-node src/scripts/precomputeGraph.ts"
+    "graph": "tsx src/scripts/precomputeGraph.ts"
   },
   "dependencies": {
     "@turf/bbox": "^6.5.0",

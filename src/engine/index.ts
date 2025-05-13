@@ -58,19 +58,11 @@ function buildInitialState(io: IOServer): GameState {
   );
   const features: any[] = nuts2.features;
 
-  /* ---- graphe d’adjacence ---- */
-  const graph = JSON.parse(readFileSync(path.join(__dirname, "..", "..", "public", "nuts2-adj.json"), "utf-8"));
-  for (const a of features) {
-    const neigh: string[] = [];
-    for (const b of features) {
-      if (a === b) continue;
-      if (booleanOverlap(a, b) || booleanTouches(bboxPolygon(bbox(a)), bboxPolygon(bbox(b)))) {
-        neigh.push(b.properties.NUTS_ID);
-      }
-    }
-    graph[a.properties.NUTS_ID] = neigh;
-  }
 
+/* ---- graphe d’adjacence pré‑calculé ---- */
+const graph: Record<string, string[]> = JSON.parse(
+  readFileSync(path.join(__dirname, "..", "..", "public", "nuts2-adj.json"), "utf-8")
+);
   /* ---- camps de démo ---- */
   const campIds = ["A", "B", "C"] as const;
   const colors = ["#e74c3c", "#2980b9", "#27ae60"];
@@ -141,3 +133,4 @@ function serializeRegions(state: Pick<GameState, "regions">) {
     ])
   );
 }
+
