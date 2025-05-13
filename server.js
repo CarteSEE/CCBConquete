@@ -11,20 +11,21 @@ import bboxPolygon    from '@turf/bbox-polygon';
 import booleanOverlap from '@turf/boolean-overlap';
 import booleanTouches from '@turf/boolean-touches';
 
-const __dirname  = path.dirname(fileURLToPath(import.meta.url));
-const PORT       = process.env.PORT || 3000;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PORT      = process.env.PORT || 3000;
 
+/* ───── serveur + statiques ───── */
 const app  = Express();
 const httpServer = http.createServer(app);
 const io   = new Server(httpServer, { pingInterval: 10_000 });
 app.use(Express.static(path.join(__dirname, 'public')));
 
-/* ───── Lecture des régions NUTS2 ───── */
+/* ───── GeoJSON NUTS‑2 ───── */
 const nuts2   = JSON.parse(fs.readFileSync(path.join(__dirname, 'public', 'nuts2.geojson')));
 const regions = nuts2.features;
 
 /* ───── Graphe d’adjacence ───── */
-const adjacency = {};  // { id → Set(voisins) }
+const adjacency = {};
 regions.forEach(a => {
   const idA = a.properties.NUTS_ID;
   adjacency[idA] = new Set();
@@ -39,60 +40,58 @@ regions.forEach(a => {
 });
 
 /* ───── État du jeu ───── */
-const game = {
-  tick: 0,
-  viewers: {},   // login → {camp, region, deadUntil}
-  camps: {},     // camp → {color, capital, alive}
-  ownership: {}  // region → {camp, contestedBy:Set, turnEntered}
-};
+const game = { tick: 0, viewers: {}, camps: {}, ownership: {} };
 
-/* ─────  MODE DÉMO  (NODE_ENV=dev) ───── */
+/* renvoie la première région dont l’ID commence par le préfixe */
+const firstRegionId = prefix =>
+  regions.find(f => f.properties.NUTS_ID.startsWith(prefix))?.properties.NUTS_ID;
+
+/* ───── Mode démo (NODE_ENV=dev) ───── */
 if (process.env.NODE_ENV === 'dev') {
   const demo = [
-    { name:'alpha',   color:'#ff9800', capital:'FRK'  }, // Rhône‑Alpes
-    { name:'bravo',   color:'#03a9f4', capital:'DE60' }, // Berlin
-    { name:'charlie', color:'#8bc34a', capital:'PT15' }  // Algarve
+    { name: 'alpha',   color: '#ff9800', prefix: 'FR' }, // France
+    { name: 'bravo',   color: '#03a9f4', prefix: 'DE' }, // Allemagne
+    { name: 'charlie', color: '#8bc34a', prefix: 'PT' }  // Portugal
   ];
   demo.forEach(c => {
-    game.camps[c.name]  = { color:c.color, capital:c.capital, alive:true };
-    game.ownership[c.capital] = { camp:c.name, contestedBy:new Set(), turnEntered:0 };
-    for (let i=0;i<30;i++)
-      game.viewers[`${c.name}_${i}`] = { camp:c.name, region:c.capital, deadUntil:0 };
+    const cap = firstRegionId(c.prefix);
+    game.camps[c.name]  = { color: c.color, capital: cap, alive: true };
+    game.ownership[cap] = { camp: c.name, contestedBy: new Set(), turnEntered: 0 };
+    for (let i = 0; i < 30; i++)
+      game.viewers[`${c.name}_${i}`] = { camp: c.name, region: cap, deadUntil: 0 };
   });
 }
 
-/* ───── Sockets navigateur ───── */
-io.on('connection', sock => {
-  sock.emit('init', { regions, game });
-});
+/* ───── sockets navigateur ───── */
+io.on('connection', s => s.emit('init', { regions, game }));
 
 /* ───── Boucle de tour (30 s) ───── */
 setInterval(() => {
-  game.tick++;
+  game.tick += 1;
 
-  /* 1. déplacement aléatoire (75 %) */
+  /* 1. Déplacement aléatoire (75 %) */
   for (const [user, v] of Object.entries(game.viewers)) {
     if (Math.random() < 0.75) {
       const neigh = [...adjacency[v.region] || []];
       if (neigh.length) {
-        v.region = neigh[Math.floor(Math.random()*neigh.length)];
-        io.emit('move', { user, region:v.region });
+        v.region = neigh[Math.floor(Math.random() * neigh.length)];
+        io.emit('move', { user, region: v.region });
       }
     }
   }
 
-  /* 2. annexion si un seul camp présent */
-  const presence = {}; // region → {camp→count}
-  for (const {camp,region} of Object.values(game.viewers)) {
-    (presence[region] ??= {})[camp] = ((presence[region]||{})[camp]||0)+1;
-  }
-  for (const [reg,camps] of Object.entries(presence)) {
+  /* 2. Annexion si un seul camp présent */
+  const presence = {};                    // region → {camp → n}
+  for (const { camp, region } of Object.values(game.viewers))
+    (presence[region] ??= {})[camp] = (presence[region]?.[camp] || 0) + 1;
+
+  for (const [reg, camps] of Object.entries(presence)) {
     const campsHere = Object.keys(camps);
     if (campsHere.length === 1) {
       const camp = campsHere[0];
       if (game.ownership[reg]?.camp !== camp) {
-        game.ownership[reg] = { camp, contestedBy:new Set(), turnEntered:game.tick };
-        io.emit('regionUpdate', { id:reg, camp });
+        game.ownership[reg] = { camp, contestedBy: new Set(), turnEntered: game.tick };
+        io.emit('regionUpdate', { id: reg, camp });
       }
     }
   }
@@ -100,6 +99,6 @@ setInterval(() => {
   io.emit('tick', { tick: game.tick });
 }, 30_000);
 
-/* ───── Lancement serveur ───── */
+/* ───── lancement ───── */
 httpServer.listen(PORT, () =>
-  console.log(`▶  http://localhost:${PORT}  (env=${process.env.NODE_ENV||'prod'})`));
+  console.log(`▶  http://localhost:${PORT} (env=${process.env.NODE_ENV||'prod'})`));

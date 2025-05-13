@@ -1,21 +1,19 @@
 body{margin:0;font-family:'Segoe UI',sans-serif;background:#1b1d22;color:#eee}
 #map{height:100vh}
 
-#hud{
-  position:absolute;top:10px;left:10px;z-index:1000;
-  background:rgba(20,22,28,.8);padding:6px 10px;border-radius:6px;
-  color:#4caf50;font-weight:bold;box-shadow:0 0 4px #000;
-}
+/* HUD */
+#hud{position:absolute;top:10px;left:10px;z-index:1000;
+     background:rgba(20,22,28,.8);padding:6px 10px;border-radius:6px;
+     color:#4caf50;font-weight:bold;box-shadow:0 0 4px #000;}
 #tick{font-weight:600}
-
-.leaflet-container a.leaflet-control-attribution{display:none}
 
 /* popup verre dépoli */
 .leaflet-popup.region-popup .leaflet-popup-content-wrapper{
-  background:rgba(40,42,48,.55);backdrop-filter:blur(4px);border-radius:14px;color:#eee;
-}
-.infocard h3{margin:0 0 6px;font-size:16px;color:#fff;}
-.infocard p{margin:0;font-size:13px;line-height:1.4;}
+  background:rgba(40,42,48,.55);backdrop-filter:blur(4px);
+  border-radius:14px;color:#eee;}
+.card h3{margin:0 0 6px;font-size:16px;color:#fff;}
+.card p {margin:0;font-size:13px;line-height:1.4;}
 
-/* supprimer rectangle de focus SVG */
+/* clean */
+.leaflet-container a.leaflet-control-attribution{display:none}
 .leaflet-container svg path:focus{outline:none}
