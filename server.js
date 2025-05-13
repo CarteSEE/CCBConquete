@@ -67,20 +67,16 @@ game.ownership['FRK']  = { camp: TW_CHANNEL, contestedBy: new Set(), turnEntered
 
 if (process.env.NODE_ENV === 'dev') {
   const demo = [
-    { name:'alpha',   color:'#ff9800' },
-    { name:'bravo',   color:'#03a9f4' },
-    { name:'charlie', color:'#8bc34a' }
+    { name: 'alpha',   color: '#ff9800' },
+    { name: 'bravo',   color: '#03a9f4' },
+    { name: 'charlie', color: '#8bc34a' }
   ];
-
-  demo.forEach((c, idx) => {
-    const cap = regions[idx].properties.NUTS_ID;
-    game.camps[c.name] = { color:c.color, capital:cap, alive:true };
+  demo.forEach((c, i) => {
+    const cap = regions[i].properties.NUTS_ID;        // une capitale différente
+    game.camps[c.name]  = { color:c.color, capital:cap, alive:true };
     game.ownership[cap] = { camp:c.name, contestedBy:new Set(), turnEntered:0 };
-
-    for (let i=0;i<30;i++){
-      const u = `${c.name}_${i}`;
-      game.viewers[u] = { camp:c.name, region:cap, deadUntil:0 };
-    }
+    for (let n=0; n<30; n++)                           // 30 pions dans LA capitale
+      game.viewers[`${c.name}_${n}`] = { camp:c.name, region:cap, deadUntil:0 };
   });
 }
 
@@ -117,10 +113,40 @@ if (USE_TWITCH) {
   }
   });
 }
-
-/* ───── 5. Tick toutes les 30 s ──── */
+/* ───── Tick : 30 s ──── */
 setInterval(() => {
-  game.tick += 1;
+  game.tick++;
+
+  /* 1. déplacement aléatoire 75 % */
+  for (const [user, v] of Object.entries(game.viewers)) {
+    if (Math.random() < 0.75) {
+      const neigh = [...adjacency[v.region] || []];
+      if (neigh.length) {
+        const dest = neigh[Math.floor(Math.random() * neigh.length)];
+        v.region = dest;
+        io.emit('move', { user, region: dest });
+      }
+    }
+  }
+
+  /* 2. annexion : comptage par (region,camp) */
+  const count = {};   // regionId → {camp → n}
+  for (const {camp, region} of Object.values(game.viewers)) {
+    if (!count[region]) count[region] = {};
+    count[region][camp] = (count[region][camp] || 0) + 1;
+  }
+
+  for (const [id, byCamp] of Object.entries(count)) {
+    const campsPresent = Object.keys(byCamp);
+    if (campsPresent.length === 1) {                  // présence exclusive
+      const camp = campsPresent[0];
+      if (game.ownership[id]?.camp !== camp) {
+        game.ownership[id] = { camp, contestedBy:new Set(), turnEntered:game.tick };
+        io.emit('regionUpdate', { id, camp });        // notif client → recolorier
+      }
+    }
+  }
+
   io.emit('tick', { tick: game.tick });
 }, 30_000);
 
