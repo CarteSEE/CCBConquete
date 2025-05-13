@@ -1,0 +1,9 @@
+body { margin:0; font-family: 'Segoe UI',sans-serif; background:#1b1d22; color:#eee; }
+#hud {
+  position:absolute; top:10px; left:10px; z-index:1000;
+  background:rgba(20,22,28,.8); padding:8px 12px; border-radius:6px;
+  box-shadow:0 0 4px #000;
+}
+#hud h1 { margin:0 0 6px 0; font-size:18px; color:#4caf50; }
+#tick  { font-weight:600; }
+.leaflet-container a.leaflet-control-attribution { display:none; } /* retire OSM text */
