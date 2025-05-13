@@ -1,18 +1,21 @@
-body { margin:0; font-family: 'Segoe UI',sans-serif; background:#1b1d22; color:#eee; }
-#hud {
-  position:absolute; top:10px; left:10px; z-index:1000;
-  background:rgba(20,22,28,.8); padding:8px 12px; border-radius:6px;
-  box-shadow:0 0 4px #000;
+body{margin:0;font-family:'Segoe UI',sans-serif;background:#1b1d22;color:#eee}
+#map{height:100vh}
+
+#hud{
+  position:absolute;top:10px;left:10px;z-index:1000;
+  background:rgba(20,22,28,.8);padding:6px 10px;border-radius:6px;
+  color:#4caf50;font-weight:bold;box-shadow:0 0 4px #000;
 }
-#hud h1 { margin:0 0 6px 0; font-size:18px; color:#4caf50; }
-#tick  { font-weight:600; }
-.leaflet-container a.leaflet-control-attribution { display:none; } /* retire OSM text */
-/* popup custom */
+#tick{font-weight:600}
+
+.leaflet-container a.leaflet-control-attribution{display:none}
+
+/* popup verre dépoli */
 .leaflet-popup.region-popup .leaflet-popup-content-wrapper{
-  border-radius:12px;
-  background:rgba(32,34,40,.5);
-  backdrop-filter:blur(4px);
-  color:#eee;
+  background:rgba(40,42,48,.55);backdrop-filter:blur(4px);border-radius:14px;color:#eee;
 }
-.infocard h3{margin:0 0 4px 0;font-size:16px;color:#fff;}
+.infocard h3{margin:0 0 6px;font-size:16px;color:#fff;}
 .infocard p{margin:0;font-size:13px;line-height:1.4;}
+
+/* supprimer rectangle de focus SVG */
+.leaflet-container svg path:focus{outline:none}
