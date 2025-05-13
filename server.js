@@ -66,21 +66,20 @@ game.camps[TW_CHANNEL] = { color: '#E91E63', capital: 'FRK', alive: true };
 game.ownership['FRK']  = { camp: TW_CHANNEL, contestedBy: new Set(), turnEntered: 0 };
 
 if (process.env.NODE_ENV === 'dev') {
-  const demoCamps = [
-    { name: 'alpha',   color: '#ff9800' },
-    { name: 'bravo',   color: '#03a9f4' },
-    { name: 'charlie', color: '#8bc34a' }
+  const demo = [
+    { name:'alpha',   color:'#ff9800' },
+    { name:'bravo',   color:'#03a9f4' },
+    { name:'charlie', color:'#8bc34a' }
   ];
 
-  demoCamps.forEach((c, idx) => {
-    const capitalId = regions[idx].properties.NUTS_ID;      // première région dispo
-    game.camps[c.name] = { color: c.color, capital: capitalId, alive: true };
-    game.ownership[capitalId] = { camp: c.name, contestedBy: new Set(), turnEntered: 0 };
+  demo.forEach((c, idx) => {
+    const cap = regions[idx].properties.NUTS_ID;
+    game.camps[c.name] = { color:c.color, capital:cap, alive:true };
+    game.ownership[cap] = { camp:c.name, contestedBy:new Set(), turnEntered:0 };
 
-    // 30 pions
-    for (let i = 0; i < 30; i++) {
-      const user = `${c.name}_${i}`;
-      game.viewers[user] = { camp: c.name, region: capitalId, deadUntil: 0 };
+    for (let i=0;i<30;i++){
+      const u = `${c.name}_${i}`;
+      game.viewers[u] = { camp:c.name, region:cap, deadUntil:0 };
     }
   });
 }

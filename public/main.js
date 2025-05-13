@@ -1,95 +1,104 @@
-/* public/main.js  ───────────────────────────────────────────*/
-const socket = io();
+/* ─────────────────────────  public/main.js  ───────────────────────── */
+/* global L, io, turf */
+const socket        = io();
+const viewerMarkers = new Map();          // user → {marker, region}
+const campColors    = {};                 // campName → color
+let ownership       = {};                 // id → {camp}
+let regionLayer; let map;
 
-let map, regionLayer;
-const viewerMarkers = new Map();   // user → {marker, region}
-const campColors    = {};          // camp → color
-let ownership       = {};          // id → {camp}
-
+/* ===== Socket events ===== */
 socket.on('init', ({ regions, game }) => {
   ownership = game.ownership;
-  Object.entries(game.camps).forEach(([c, obj]) => (campColors[c] = obj.color));
+  Object.entries(game.camps).forEach(([name, obj]) => campColors[name] = obj.color);
 
-  initMap(regions);
-  // pions existants
-  Object.entries(game.viewers)
-    .forEach(([u, v]) => addViewer(u, v.region, campColors[v.camp]));
+  drawMap(regions);
+  // Affiche les pions existants
+  Object.entries(game.viewers).forEach(([u, v]) =>
+      addViewer(u, v.region, campColors[v.camp]));
 });
 
 socket.on('spawn', ({ user, camp, region }) =>
   addViewer(user, region, campColors[camp])
 );
-
-socket.on('move', ({ user, region }) => moveViewer(user, region));
-
-socket.on('tick', ({ tick }) =>
+socket.on('move',  ({ user, region }) => moveViewer(user, region));
+socket.on('tick',  ({ tick }) =>
   (document.getElementById('tick').textContent = `Tour ${tick}`)
 );
 
-/* ─────────── MAP ─────────── */
-function initMap(regions) {
+/* ===== Map & regions ===== */
+function drawMap(regions) {
   map = L.map('map').setView([50, 10], 5);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-              { attribution: '' }).addTo(map);
+              { attribution:'' }).addTo(map);
 
   regionLayer = L.geoJSON(regions, {
-    style: f => {
-      const base  = { color:'#444', weight:1, fillOpacity:.25 };
-      const owner = ownership[f.properties.NUTS_ID]?.camp;
-      base.fillColor = owner ? campColors[owner] || '#666' : '#2a2d34';
-      if (owner) base.fillOpacity = .45;
-      return base;
+    style: feat => {
+      const owner = ownership[feat.properties.NUTS_ID]?.camp;
+      return {
+        color:'#444', weight:1,
+        fillColor: owner ? campColors[owner] : '#2a2d34',
+        fillOpacity: owner ? .50 : .25
+      };
     },
-    onEachFeature: (f, layer) => {
-      layer.on('mouseover', () => layer.setStyle({ fillOpacity:.55 }));
-      layer.on('mouseout', ()  => layer.setStyle({ fillOpacity:
-                        ownership[f.properties.NUTS_ID]?.camp ? .45 : .25 }));
+    onEachFeature: (feat, layer) => {
+      layer.on('mouseover', () => layer.setStyle({ fillOpacity:.6 }));
+      layer.on('mouseout',  () => layer.setStyle({
+        fillOpacity: ownership[feat.properties.NUTS_ID]?.camp ? .5 : .25 }));
+      layer.on('click', () => showPopup(feat, layer));
 
-      layer.on('click', () => showRegionInfo(f, layer));
-
-      const niceName = f.properties.NUTS_NAME || f.properties.NAME_LATN || '(sans nom)';
-      const ownerTxt = ownership[f.properties.NUTS_ID]?.camp || 'Inoccupé';
-      layer.bindTooltip(`<b>${niceName}</b><br><small>${f.properties.NUTS_ID}</small><br>${ownerTxt}`,
+      const name  = feat.properties.NUTS_NAME || feat.properties.NAME_LATN || '(sans nom)';
+      const owner = ownership[feat.properties.NUTS_ID]?.camp || 'Inoccupé';
+      layer.bindTooltip(`<b>${name}</b><br><small>${feat.properties.NUTS_ID}</small><br>${owner}`,
                         { sticky:true });
     }
   }).addTo(map);
 }
 
-function showRegionInfo(feature, layer){
-  const id        = feature.properties.NUTS_ID;
-  const niceName  = feature.properties.NUTS_NAME || feature.properties.NAME_LATN || '(sans nom)';
-  const fighters  = [...viewerMarkers.values()].filter(v => v.region === id).length;
-  const ownerTxt  = ownership[id]?.camp || 'Inoccupé';
+function showPopup(feat, layer) {
+  const id   = feat.properties.NUTS_ID;
+  const name = feat.properties.NUTS_NAME || feat.properties.NAME_LATN || '(sans nom)';
+  const camp = ownership[id]?.camp || 'Inoccupé';
+  const fighters = [...viewerMarkers.values()].filter(v => v.region === id).length;
 
   layer.bindPopup(
-      `<h3 style="margin:0">${niceName}</h3>
-       <p>ID : ${id}<br>
-       Contrôle : <b>${ownerTxt}</b><br>
-       Combattants : <b>${fighters}</b></p>`
+    `<h3 style="margin:0">${name}</h3>
+     <p>ID : ${id}<br>
+     Contrôle : <b>${camp}</b><br>
+     Combattants : <b>${fighters}</b></p>`
   ).openPopup();
 }
 
-/* ─────────── PIONS ─────────── */
+/* ===== Viewer markers ===== */
 function addViewer(user, regionId, color) {
   const poly = getPoly(regionId); if (!poly) return;
-  const [lon, lat] = turf.randomPoint(1, { bbox: turf.bbox(poly) })
-                         .features[0].geometry.coordinates;
-  const marker = L.circleMarker([lat, lon], {
-      radius:4, color:'#000', weight:.5, fillColor:color, fillOpacity:.9
+  const [lon, lat] = randomInside(poly);
+  const m = L.circleMarker([lat, lon], {
+      radius:4, color:'#000', weight:.4, fillColor:color, fillOpacity:.9
   }).bindTooltip(user);
-  marker.addTo(map);
-  viewerMarkers.set(user, { marker, region: regionId });
+  m.addTo(map);
+  viewerMarkers.set(user, { marker:m, region:regionId });
 }
 
 function moveViewer(user, regionId) {
   const obj = viewerMarkers.get(user); if (!obj) return;
   const poly = getPoly(regionId);      if (!poly) return;
-  const [lon, lat] = turf.randomPoint(1, { bbox: turf.bbox(poly) })
-                         .features[0].geometry.coordinates;
+  const [lon, lat] = randomInside(poly);
   obj.marker.setLatLng([lat, lon]); obj.region = regionId;
 }
 
-function getPoly(id){
-  let p; regionLayer.eachLayer(l => { if (l.feature.properties.NUTS_ID === id) p = l.feature; });
-  return p;
+/* ===== Helpers ===== */
+function getPoly(id) {
+  let f; regionLayer.eachLayer(l => {
+    if (l.feature.properties.NUTS_ID === id) f = l.feature;
+  }); return f;
+}
+
+// Renvoie un point garanti DANS le polygone (pas seulement la bbox)
+function randomInside(polygon) {
+  const bbox = turf.bbox(polygon);
+  let pt;
+  do {
+    pt = turf.randomPoint(1, { bbox }).features[0];
+  } while (!turf.booleanPointInPolygon(pt, polygon));
+  return pt.geometry.coordinates;
 }
