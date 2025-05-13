@@ -14,6 +14,7 @@ import bboxPolygon    from '@turf/bbox-polygon';
 
 /* Twitch */
 import tmi from 'tmi.js';
+const USE_TWITCH = process.env.NODE_ENV !== 'dev';   // false quand tu fais npm run dev
 
 /* ───── Config rapides ──── */
 const PORT       = process.env.PORT || 3000;
@@ -90,24 +91,24 @@ io.on('connection', sock => {
 });
 
 /* ───── 4. Bot Twitch ──── */
-const twitch = new tmi.Client({
-  options : { debug: false },
-  identity: { username: 'bot_name', password: TW_OAUTH },
-  channels: [TW_CHANNEL]
-});
-twitch.connect();
+if (USE_TWITCH) {
+  const twitch = new tmi.Client({
+    options : { debug: false },
+    identity: { username: 'bot_name', password: TW_OAUTH },
+    channels: [TW_CHANNEL]
+  });
+  twitch.connect();
 
-/* commande “jouer” et “go <ID>” */
-twitch.on('message', (ch, tags, msg) => {
-  const user = tags['display-name']?.toLowerCase();
-  const v    = game.viewers[user];
+  /* commande “jouer” et “go <ID>” */
+  twitch.on('message', (ch, tags, msg) => {
+    const user = tags['display-name']?.toLowerCase();
+    const v    = game.viewers[user];
 
-  if (msg.trim().toLowerCase() === 'jouer' && !v) {
-    const spawn = game.camps[TW_CHANNEL].capital;
-    game.viewers[user] = { camp: TW_CHANNEL, region: spawn, deadUntil: 0 };
-    io.emit('spawn', { user, camp: TW_CHANNEL, region: spawn });
-  }
-
+    if (msg.trim().toLowerCase() === 'jouer' && !v) {
+      const spawn = game.camps[TW_CHANNEL].capital;
+      game.viewers[user] = { camp: TW_CHANNEL, region: spawn, deadUntil: 0 };
+      io.emit('spawn', { user, camp: TW_CHANNEL, region: spawn });
+    }
   if (msg.toLowerCase().startsWith('go ')) {
     const target = msg.split(' ')[1]?.toUpperCase();
     if (v && game.tick >= v.deadUntil && adjacency[v.region]?.has(target)) {
@@ -115,7 +116,8 @@ twitch.on('message', (ch, tags, msg) => {
       io.emit('move', { user, region: target });
     }
   }
-});
+  });
+}
 
 /* ───── 5. Tick toutes les 30 s ──── */
 setInterval(() => {
